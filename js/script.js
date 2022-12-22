@@ -87,33 +87,33 @@ window.addEventListener("DOMContentLoaded", () => {
 
 	const modal = document.querySelector(".modal");
 	const modalTrigger = document.querySelectorAll("[data-modal]");
-	const modalCloseBtn = document.querySelector("[data-close]");
+	// const modalCloseBtn = document.querySelector("[data-close]");
 
 	function openModal() {
 		// modal.style.cssText = "display: block"; // 1 versiune
-		// modal.classList.add("show");
-		// modal.classList.remove("hide"); // a 2-a versiune
-		modal.classList.toggle("show"); //3
+		modal.classList.add("show");
+		modal.classList.remove("hide"); // a 2-a versiune
+		// modal.classList.toggle("show"); //3
 
 		document.body.style.overflow = "hidden"; // anulez scroll
-		// clearInterval(modalTimerId);
+		clearInterval(modalTimerId);
 	}
 	modalTrigger.forEach((item) => {
 		item.addEventListener("click", openModal);
 	});
 	function closeModal() {
 		// modal.style.cssText = "display: none"; //1
-		// modal.classList.remove("show");
-		// modal.classList.add("hide"); //2
-		modal.classList.toggle("show"); //3
+		modal.classList.remove("show");
+		modal.classList.add("hide"); //2
+		// modal.classList.toggle("show"); //3
 
 		document.body.style.overflow = "";
 	}
 
-	modalCloseBtn.addEventListener("click", closeModal);
+	// modalCloseBtn.addEventListener("click", closeModal);
 
 	modal.addEventListener("click", (e) => {
-		if (e.target === modal) {
+		if (e.target === modal || e.target.getAttribute("data-close") == "") {
 			closeModal();
 		}
 	});
@@ -123,7 +123,7 @@ window.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	// const modalTimerId = setTimeout(openModal, 3000);
+	const modalTimerId = setTimeout(openModal, 50000);
 
 	function showModalByScroll() {
 		if (
@@ -206,13 +206,11 @@ window.addEventListener("DOMContentLoaded", () => {
 	).render();
 
 	//Forms
-
 	const forms = document.querySelectorAll("form");
-
 	const message = {
-		loading: "Zagrusca",
-		success: "spasibp. skoro mi s vami sfesamsea",
-		failure: "ceva nu bine",
+		loading: "img/form/spinner.svg",
+		success: "Спасибо! Скоро мы с вами свяжемся",
+		failure: "Что-то пошло не так...",
 	};
 	forms.forEach((item) => {
 		postData(item);
@@ -221,38 +219,77 @@ window.addEventListener("DOMContentLoaded", () => {
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 
-			const statusMessage = document.createElement("div");
-			statusMessage.classList.add("status");
-			statusMessage.textContent = message.loading;
-			form.append(statusMessage);
+			let statusMessage = document.createElement("img");
+			statusMessage.src = message.loading;
+			statusMessage.style.cssText = `
+             display: block;
+             margin: 0 auto;`;
+			// form.append(statusMessage); //Crearea si inserare mesaj notificare
+			form.insertAdjacentElement("afterend", statusMessage);
 
-			const request = new XMLHttpRequest();
-			request.open("POST", "js/server.php");
-
-			request.setRequestHeader("Content-type", "aplication/json");
-			const formData = new FormData(form);
+			// const request = new XMLHttpRequest();
+			// request.open("POST", "js/server.php");
+			// request.setRequestHeader(
+			// 	"Content-type",
+			// 	"application/json; charset=utf-8"
+			// );
+			const formData = new FormData(form); // preia datele de pe pagina
 
 			const object = {};
-
 			formData.forEach(function (value, key) {
 				object[key] = value;
 			});
-			const json = JSON.stringify(object);
-			request.send(json);
 
-			request.addEventListener("load", () => {
-				if (request.status === 200) {
-					console.log(request.response);
-					statusMessage.textContent = message.success;
+			fetch("js/server.php", {
+				method: "POST",
+				headers: { "Content-type": "application/json" },
+				body: JSON.stringify(object),
+			})
+				.then((data) => data.text())
+				.then((data) => {
+					console.log(data);
+					showThanksModal(message.success);
+					statusMessage.remove();
+				})
+				.catch(() => {
+					showThanksModal(message.failure);
+				})
+				.finally(() => {
 					form.reset();
+				});
 
-					setTimeout(() => {
-						statusMessage.remove();
-					}, 2000);
-				} else {
-					statusMessage.textContent = message.failure;
-				}
-			});
+			// request.send(json);
+
+			// request.addEventListener("load", () => {
+			// 	if (request.status === 200) {
+			// 		console.log(request.response);
+			// 		showThanksModal(message.success);
+			// 		statusMessage.remove();
+			// 		form.reset();
+			// 	} else {
+			// 		showThanksModal(message.failure);
+			// 	}
+			// });
 		});
+	}
+
+	function showThanksModal(message) {
+		const prevModalDialog = document.querySelector(".modal__dialog");
+		prevModalDialog.classList.add("hide");
+		openModal();
+		const thanksModal = document.createElement("div");
+		thanksModal.classList.add("modal__dialog");
+		thanksModal.innerHTML = `      
+         <div class="modal__content">
+            <div  class="modal__close">×</div>
+            <div class="modal__title">${message}</div>
+         </div>`;
+		document.querySelector(".modal").append(thanksModal);
+		setTimeout(() => {
+			thanksModal.remove();
+			prevModalDialog.classList.add("show");
+			prevModalDialog.classList.remove("hide");
+			closeModal();
+		}, 4000);
 	}
 });
