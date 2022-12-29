@@ -1,5 +1,6 @@
+"use strict";
 window.addEventListener("DOMContentLoaded", () => {
-	//tabs
+	//#region  //! tabs
 	const tabs = document.querySelectorAll(".tabheader__item");
 	const tabsContent = document.querySelectorAll(".tabcontent");
 	const tabsParent = document.querySelector(".tabheader__items");
@@ -34,8 +35,9 @@ window.addEventListener("DOMContentLoaded", () => {
 			});
 		}
 	});
-	// timer
-	const deadline = "2022-12-20";
+	//#endregion
+	//#region  //! timer
+	const deadline = "2022-12-25";
 	function getTimeRemaining(endtime) {
 		const t = Date.parse(endtime) - Date.parse(new Date());
 		const days = Math.floor(t / (1000 * 60 * 60 * 24));
@@ -82,9 +84,8 @@ window.addEventListener("DOMContentLoaded", () => {
 	}
 
 	setClock(".timer", deadline);
-
-	// Modal
-
+	//#endregion
+	//#region  //! Modal
 	const modal = document.querySelector(".modal");
 	const modalTrigger = document.querySelectorAll("[data-modal]");
 	// const modalCloseBtn = document.querySelector("[data-close]");
@@ -176,36 +177,58 @@ window.addEventListener("DOMContentLoaded", () => {
 			this.parent.append(element);
 		}
 	}
-	new MenuCard(
-		"img/tabs/vegy.jpg",
-		"vegy",
-		'Меню "Фитнес"',
-		'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей  и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
-		9,
-		".menu .container"
-	).render();
-	new MenuCard(
-		"img/tabs/elite.jpg",
-		"elite",
-		"Меню “Премиум”",
-		"В меню “Премиум” мы используем не только красивый дизайн упаковки, но икачественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!",
-		20,
-		".menu .container",
-		"menu__item",
-		"big"
-	).render();
-	new MenuCard(
-		"img/tabs/post.jpg",
-		"post",
-		"Меню “Постное”",
-		"Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.",
-		15,
-		".menu .container",
-		"menu__item",
-		"big"
-	).render();
 
-	//Forms
+	const getResource = async (url) => {
+		const res = await fetch(url);
+		if (!res.ok) {
+			throw new Error(`Could not fetch ${url}, Status: ${res.status}`);
+		}
+		return await res.json();
+	};
+
+	getResource("http://localhost:3000/menu").then((data) => {
+		data.forEach(({ img, altimg, title, descr, price }) => {
+			new MenuCard(
+				img,
+				altimg,
+				title,
+				descr,
+				price,
+				".menu .container"
+			).render();
+		});
+	});
+
+	// new MenuCard(
+	// 	"img/tabs/vegy.jpg",
+	// 	"vegy",
+	// 	'Меню "Фитнес"',
+	// 	'Меню "Фитнес" - это новый подход к приготовлению блюд: больше свежих овощей  и фруктов. Продукт активных и здоровых людей. Это абсолютно новый продукт с оптимальной ценой и высоким качеством!',
+	// 	9,
+	// 	".menu .container"
+	// ).render();
+	// new MenuCard(
+	// 	"img/tabs/elite.jpg",
+	// 	"elite",
+	// 	"Меню “Премиум”",
+	// 	"В меню “Премиум” мы используем не только красивый дизайн упаковки, но икачественное исполнение блюд. Красная рыба, морепродукты, фрукты - ресторанное меню без похода в ресторан!",
+	// 	20,
+	// 	".menu .container",
+	// 	"menu__item",
+	// 	"big"
+	// ).render();
+	// new MenuCard(
+	// 	"img/tabs/post.jpg",
+	// 	"post",
+	// 	"Меню “Постное”",
+	// 	"Меню “Постное” - это тщательный подбор ингредиентов: полное отсутствие продуктов животного происхождения, молоко из миндаля, овса, кокоса или гречки, правильное количество белков за счет тофу и импортных вегетарианских стейков.",
+	// 	15,
+	// 	".menu .container",
+	// 	"menu__item",
+	// 	"big"
+	// ).render();
+	//#endregion
+	//#region  //! Forms
 	const forms = document.querySelectorAll("form");
 	const message = {
 		loading: "img/form/spinner.svg",
@@ -213,9 +236,21 @@ window.addEventListener("DOMContentLoaded", () => {
 		failure: "Что-то пошло не так...",
 	};
 	forms.forEach((item) => {
-		postData(item);
+		bindPostData(item);
 	});
-	function postData(form) {
+
+	const postData = async (url, data) => {
+		//async spune ca codul trebuie sa se faca treptat
+		const res = await fetch(url, {
+			// await spune unde trebuie sa astepte
+			method: "POST",
+			headers: { "Content-type": "application/json" },
+			body: data,
+		});
+		return await res.json();
+	};
+
+	function bindPostData(form) {
 		form.addEventListener("submit", (e) => {
 			e.preventDefault();
 
@@ -235,17 +270,9 @@ window.addEventListener("DOMContentLoaded", () => {
 			// );
 			const formData = new FormData(form); // preia datele de pe pagina
 
-			const object = {};
-			formData.forEach(function (value, key) {
-				object[key] = value;
-			});
+			const json = JSON.stringify(Object.fromEntries(formData.entries()));
 
-			fetch("js/server.php", {
-				method: "POST",
-				headers: { "Content-type": "application/json" },
-				body: JSON.stringify(object),
-			})
-				.then((data) => data.text())
+			postData("http://localhost:3000/requests", json)
 				.then((data) => {
 					console.log(data);
 					showThanksModal(message.success);
@@ -292,4 +319,128 @@ window.addEventListener("DOMContentLoaded", () => {
 			closeModal();
 		}, 4000);
 	}
+
+	// fetch("http://localhost:3000/menu")
+	// 	.then((data) => data.json())
+	// 	.then((res) => console.log(res));
+	//#endregion
+	//#region  //! slide
+
+	const slides = document.querySelectorAll(".offer__slide");
+	const prev = document.querySelector(".offer__slider-prev");
+	const next = document.querySelector(".offer__slider-next");
+	const total = document.querySelector("#total");
+	const current = document.querySelector("#current");
+
+	let slideIndex = 1;
+	showSlide(slideIndex);
+
+	if (slides.length < 10) {
+		total.textContent = `0${slides.length}`;
+	} else {
+		total.textContent = slides.length;
+	}
+	function showSlide(n) {
+		if (n > slides.length) {
+			slideIndex = 1;
+		}
+		if (n < 1) {
+			slideIndex = slides.length;
+		}
+
+		slides.forEach((item) => (item.style.display = "none"));
+		slides[slideIndex - 1].style.display = "block";
+
+		if (slides.length < 10) {
+			current.textContent = `0${slideIndex}`;
+		} else {
+			current.textContent = slideIndex;
+		}
+	}
+	function plusSlides(n) {
+		showSlide((slideIndex += n));
+	}
+
+	prev.addEventListener("click", () => {
+		plusSlides(-1);
+	});
+	next.addEventListener("click", () => {
+		plusSlides(1);
+	});
+	//#endregion
+	//#region  //! Calculator
+	const result = document.querySelector(".calculating__result span");
+	let sex = "female",
+		height,
+		weight,
+		age,
+		ratio = 1.375;
+
+	function calcTotal() {
+		if (!sex || !height || !weight || !age || !ratio) {
+			result.textContent = "____"; // Можете придумать что угодно
+			return;
+		}
+		if (sex == "female") {
+			result.textContent = Math.round(
+				(447.6 + 9.2 * weight + 3.1 * height - 4.3 * age) * ratio
+			);
+		}
+		if (sex == "male") {
+			result.textContent = Math.round(
+				(88.36 + 13.4 * weight + 4.8 * height - 5.7 * age) * ratio
+			);
+		}
+	}
+	calcTotal();
+
+	function getStaticInformation(parentSelector, activeClass) {
+		const elements = document.querySelectorAll(`${parentSelector} div`);
+
+		elements.forEach((elem) => {
+			elem.addEventListener("click", (e) => {
+				if (e.target.getAttribute("data-ratio")) {
+					ratio = +e.target.getAttribute("data-ratio");
+				} else {
+					sex = e.target.getAttribute("id");
+				}
+				elements.forEach((elem) => {
+					elem.classList.remove(activeClass);
+				});
+
+				e.target.classList.add(activeClass);
+				calcTotal();
+
+				console.log(sex, height, weight, age, ratio);
+			});
+		});
+	}
+	getStaticInformation("#gender", "calculating__choose-item_active");
+	getStaticInformation(
+		".calculating__choose_big",
+		"calculating__choose-item_active"
+	);
+
+	function getDynamicInformation(selector) {
+		const input = document.querySelector(selector);
+		input.addEventListener("input", () => {
+			switch (input.getAttribute("id")) {
+				case "height":
+					height = +input.value;
+					break;
+				case "weight":
+					weight = +input.value;
+					break;
+				case "age":
+					age = +input.value;
+					break;
+			}
+			calcTotal();
+		});
+	}
+
+	getDynamicInformation("#height");
+	getDynamicInformation("#weight");
+	getDynamicInformation("#age");
+	//#endregion
 });
