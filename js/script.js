@@ -10,6 +10,7 @@ import slider from "./modules/slider";
 import tabs from "./modules/tabs";
 import timer from "./modules/timer";
 import { openModal } from "./modules/modal";
+import test from "./modules/test";
 
 window.addEventListener("DOMContentLoaded", () => {
 	const modalTimerId = setTimeout(
@@ -33,5 +34,6 @@ window.addEventListener("DOMContentLoaded", () => {
 		".tabheader__items",
 		"tabheader__item_active"
 	);
-	timer(".timer", "2023-02-03");
+	timer(".timer", "2023-02-26");
+	test();
 });
