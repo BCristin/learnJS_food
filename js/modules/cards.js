@@ -42,17 +42,26 @@ function cards() {
 		}
 	}
 
-	getResource("http://localhost:3000/menu").then((data) => {
-		data.forEach(({ img, altimg, title, descr, price }) => {
-			new MenuCard(
-				img,
-				altimg,
-				title,
-				descr,
-				price,
-				".menu .container"
-			).render();
+	getResource("http://localhost:3000/menu")
+		.then((data) => {
+			data.forEach(({ img, altimg, title, descr, price }) => {
+				new MenuCard(
+					img,
+					altimg,
+					title,
+					descr,
+					price,
+					".menu .container"
+				).render();
+			});
+		})
+		.catch(() => {
+			console.error("Serverul off");
+			const element = document.createElement("div");
+			element.innerHTML = ` 
+            <div >Server off. Carduri lipsa</div>`;
+			element.style.cssText = "color: red; margin: 0 auto;";
+			document.querySelector(".menu .container").append(element);
 		});
-	});
 }
 export default cards;
