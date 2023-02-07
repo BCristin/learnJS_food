@@ -1,0 +1,2 @@
+json-server db.json // pornim Serverul
+npx webpack // aduna fisierele js in unul.
